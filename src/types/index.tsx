@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from "zod";
 
 /* PROJECTS */
 export const projectSchema = z.object({
@@ -6,7 +6,16 @@ export const projectSchema = z.object({
     projectName: z.string(),
     clientName: z.string(),
     description: z.string(),
-})
+});
 
-export type Project = z.infer<typeof projectSchema>
-export type ProjectFormData = Pick<Project, 'projectName' | 'clientName' | 'description'>
+export const projectDashboardSchema = z.array(
+    projectSchema.pick({
+        _id: true,
+        projectName: true,
+        clientName: true,
+        description: true,
+    })
+);
+
+export type Project = z.infer<typeof projectSchema>;
+export type ProjectFormData = Pick<Project, "projectName" | "clientName" | "description">;
