@@ -1,17 +1,31 @@
-import { Fragment } from "react";
-import { Menu, Transition } from "@headlessui/react";
-import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
-import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { getProjects } from "@/api/ProjectAPI";
+import { Fragment } from 'react'
+import { Menu, Transition } from '@headlessui/react'
+import { EllipsisVerticalIcon } from '@heroicons/react/20/solid'
+import { Link, Navigate } from 'react-router-dom'
+import { useQuery, useMutation, QueryClient, useQueryClient } from '@tanstack/react-query'
+import { deleteProject, getProjects } from '@/api/ProjectAPI'
+import { toast } from 'react-toastify'
 
 export default function DashboardView() {
     const { data, isError, isLoading } = useQuery({
-        queryKey: ["projects"],
+        queryKey: ['projects'],
         queryFn: getProjects,
-    });
+    })
 
-    if (isLoading) return <p>Loading...</p>;
+    const queryClient = useQueryClient()
+    const { mutate } = useMutation({
+        mutationFn: deleteProject,
+        onError: (error) => {
+            toast.error(error.message)
+        },
+        onSuccess: (data) => {
+            toast.success(data)
+            queryClient.invalidateQueries({ queryKey: ['projects'] })
+        },
+    })
+
+    if (isLoading) return <p>Loading...</p>
+    if (isError) return <Navigate to={'/404'} />
     if (data)
         return (
             <>
@@ -21,7 +35,7 @@ export default function DashboardView() {
                 <nav className=' my-5'>
                     <Link
                         className=' bg-purple-400 hover:bg-purple-500 px-10 py-3 text-white text-xl font-bold cursor-pointer transition-colors '
-                        to={"/projects/create"}>
+                        to={'/projects/create'}>
                         New Project
                     </Link>
                 </nav>
@@ -76,7 +90,9 @@ export default function DashboardView() {
                                                     <button
                                                         type='button'
                                                         className='block px-3 py-1 text-sm leading-6 text-red-500'
-                                                        onClick={() => {}}>
+                                                        onClick={() => {
+                                                            mutate(project._id)
+                                                        }}>
                                                         Delete Project
                                                     </button>
                                                 </Menu.Item>
@@ -89,12 +105,12 @@ export default function DashboardView() {
                     </ul>
                 ) : (
                     <p className=' text-center py-20'>
-                        No projects yet,{" "}
-                        <Link to={"/projects/create"} className=' text-purple-400 font-bold'>
+                        No projects yet,{' '}
+                        <Link to={'/projects/create'} className=' text-purple-400 font-bold'>
                             create project
                         </Link>
                     </p>
                 )}
             </>
-        );
+        )
 }
